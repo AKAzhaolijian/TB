@@ -1,0 +1,37 @@
+# Variable 'Source_FileName' was defined in the Variables tab
+# Variable 'Source_ImageName' was defined in the Variables tab
+# Variable 'Source_Tag' was defined in the Variables tab
+# Variable 'Target_ACR' was defined in the Variables tab
+# Variable 'Target_ImageName' was defined in the Variables tab
+# Variable 'Target_Tag' was defined in the Variables tab
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: https://github.com/AKAzhaolijian/TB.git
+jobs:
+- job: Job_1
+  displayName: Docker push
+  pool:
+    vmImage: ubuntu-16.04
+  steps:
+  - checkout: self
+  - task: CopyFiles@2
+    displayName: Copy Files From Repo
+    inputs:
+      SourceFolder: DockerImage
+      TargetFolder: $(build.artifactstagingdirectory)
+  - task: Docker@2
+    displayName: login
+    inputs:
+      containerRegistry: TBcontainer220629
+      command: login
+  - task: CmdLine@2
+    displayName: Command Line Script
+    inputs:
+      script: "docker image load --input $(build.artifactstagingdirectory)/$(Source_FileName)\n\ndocker image ls\n   \ndocker image tag $(Source_ImageName):$(Source_Tag) $(Target_ACR)/$(Target_ImageName):$(Target_Tag)\n\ndocker push $(Target_ACR)/$(Target_ImageName):$(Target_Tag)"
+  - task: Docker@2
+    displayName: logout
+    inputs:
+      containerRegistry: TBcontainer220629
+      command: logout
